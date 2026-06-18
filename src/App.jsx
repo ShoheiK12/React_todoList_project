@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import './App.css'
+import TodoList from './components/TodoList';
+
 
 function App() {
   const [todos, setTodos] = useState([
@@ -12,6 +14,8 @@ function App() {
   const [input, setInput] = useState('');
   
   const [error, setError] = useState('');
+  
+  const [filter, setFilter] = useState('active');
   
   const addTodo = () => {
     /* Trim blank in input. -> If users input ''(space), it wouldn't be regarded as empty. trim() prevents this case. */
@@ -48,6 +52,29 @@ function App() {
       )
     );
   };
+  
+  const deleteTodo = (id) => {
+    /* Renew state excluding specified id. */
+    setTodos(todos.filter((todo) => todo.id !== id));
+  };
+  
+  /* Return filtered tasks. */
+  const getFilteredTodos = () => {
+    /* Return only not-completed tasks. */
+    if (filter === 'active') return todos.filter((todo) => !todo.completed);
+    /* Return only completed tasks. */
+    if (filter === 'completed') return todos.filter((todo) => todo.completed);
+    /* If two above conditions don't apply, return all tasks.  */
+    return todos;
+  };
+  
+  /* Obtain filtered tasks. */
+  const filteredTodos = getFilteredTodos();
+  
+  /* Obtain the number of not-completed/completed tasks. */
+  /* Use .length to count because .filter makes a new array based on the condition. */
+  const activeCount = todos.filter((todo) => !todo.completed).length;
+  const completedCount = todos.filter((todo) => todo.completed).length;
 
   return (
     <>
@@ -72,20 +99,28 @@ function App() {
           {error && <p className='error-message'>{error}</p>}
         </div>
         
-        <ul className="todo-list">
-          {todos.map((todo) => (
-            /* if todo.completed is true, set className="completed" (which cross out tasks). */
-            <li key={todo.id} className={todo.completed ? 'completed' : ''}>
-              <input 
-                type="checkbox"
-                /* if todo.completed is true, tick in the checkbox. */
-                checked={todo.completed}
-                onChange={() => toggleTodo(todo.id)}
-              />
-              <span>{todo.text}</span>
-            </li>
-          ))}
-        </ul>
+        <div className='filter-buttons'>
+          <button
+            onClick={() => setFilter('active')}
+            className={filter === 'active' ? 'active' : ''}
+          >
+            Not Complete({activeCount})
+          </button>
+          <button
+            onClick={() => setFilter('completed')}
+            className={filter === 'completed' ? 'active' : ''}
+          >
+            Complete({completedCount})
+          </button>
+          <button
+            onClick={() => setFilter('all')}
+            className={filter === 'all' ? 'active' : ''}
+          >
+            All({todos.length})
+          </button>
+        </div>
+        
+        <TodoList todos={filteredTodos} onToggle={toggleTodo} onDelete={deleteTodo} />
       </div>
     </>
   );
